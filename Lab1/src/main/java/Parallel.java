@@ -38,11 +38,11 @@ public abstract class Parallel {
     }
 
     private static int[] multiplyVectorMatrix(int[] vector, int[][] matrix) {
-        int[] result = new int[vector.length];
+        int[] result = new int[matrix[0].length];
         for (int j = 0; j < matrix[0].length; j++)  {
-            result[j] = 0;
+//            result[j] = 0;
             for (int l = 0 ; l < matrix.length; l++) {
-                result[j] += vector[l] * matrix[l][j];
+                result[j] = vector[l] * matrix[l][j];
             }
         }
         return result;
@@ -85,7 +85,7 @@ public abstract class Parallel {
     public static int[][] multiplySequential(int[][] matrixA, int[][] matrixB) {
         int[][] matrixC = new int[matrixA.length][matrixB[0].length];
         for (int i = 0; i < matrixA.length; i++) {
-            matrixC[i] = multiplyVectorMatrix(matrixA[i], matrixB);
+            matrixC[i] = multiplyVectorMatrix(matrixA[i], matrixB );
         }
         return matrixC;
     }
@@ -95,7 +95,7 @@ public abstract class Parallel {
         //Math.min(threadCount, Runtime.getRuntime().availableProcessors());
         ForkJoinPool customThreadPool = new ForkJoinPool(nthreads);
         return customThreadPool.submit(() -> Arrays.stream(matrixA).parallel()
-                .map(row -> multiplyVectorMatrix(row, matrixB))
+                .map(row -> multiplyVectorMatrix(row, matrixB ))
                 .toArray(int[][]::new)).get();
 
 
@@ -130,7 +130,7 @@ public abstract class Parallel {
         @Override
         public void run() {
             for (int i = row; i < row + nrows; i++) {
-                this.matrixC[i] = multiplyVectorMatrix(matrixA[i], matrixB);
+                this.matrixC[i] = multiplyVectorMatrix(matrixA[i], matrixB );
             }
         }
     }

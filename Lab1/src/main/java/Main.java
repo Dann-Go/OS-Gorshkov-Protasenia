@@ -6,23 +6,25 @@ public class Main {
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
 
-        int[][] matrixA = Parallel.generateMatrix(1000, 1000);
-        int[][] matrixB = Parallel.generateMatrix(1000, 1000);
+        int[][] matrixA = Parallel.generateMatrix(1000, 500);
+        int[][] matrixB = Parallel.generateMatrix(500, 1000);
 
-        int[][] matrixC = Parallel.multiplySequential(matrixA, matrixB);
-        System.out.println("Sequential: " + (System.currentTimeMillis() - start) + " ms");
+        int[][] matrixC ;
+        for (int i = 1 ; i < 10 ; i++) {
+            try {
 
-        try {
-            start = System.currentTimeMillis();
-            matrixC = Parallel.multiplyThreads(matrixA, matrixB,6);
+                System.out.println("Threads " + i);
+                start = System.currentTimeMillis();
+                matrixC = Parallel.multiplyThreads(matrixA, matrixB, i);
 
-            System.out.println("Threads: " + (System.currentTimeMillis() - start) + " ms");
-            start = System.currentTimeMillis();
+                System.out.println("Threads: " + (System.currentTimeMillis() - start) + " ms");
+                start = System.currentTimeMillis();
 
-            matrixC = Parallel.multiplyStream(matrixA, matrixB, 6);
-            System.out.println("Stream: " + (System.currentTimeMillis() - start) + " ms");
-        } catch (Exception e) {
-            e.printStackTrace();
+                matrixC = Parallel.multiplyStream(matrixA, matrixB, i);
+                System.out.println("Stream: " + (System.currentTimeMillis() - start) + " ms");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
