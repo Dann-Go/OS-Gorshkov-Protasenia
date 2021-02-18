@@ -1,9 +1,7 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.stream.IntStream;
 
 
 public abstract class Parallel {
@@ -40,19 +38,22 @@ public abstract class Parallel {
     private static int[] multiplyVectorMatrix(int[] vector, int[][] matrix) {
         int[] result = new int[matrix[0].length];
         for (int j = 0; j < matrix[0].length; j++)  {
-//            result[j] = 0;
-            for (int l = 0 ; l < matrix.length; l++) {
-                result[j] = vector[l] * matrix[l][j];
+            result[j] = 0;
+            for (int k = 0 ; k < matrix.length; k++) {
+                result[j] += vector[k] * matrix[k][j];
             }
         }
         return result;
     }
 
-    public static int[][] multiplyThreads(int[][] matrixA,int[][] matrixB, int nthreads) throws Exception {
-
+    private static void checkDimensions(int[][] matrixA, int[][] matrixB) throws Exception {
         if (matrixA[0].length != matrixB.length)  {
             throw new Exception("Error: invalid matrix dimensions");
         }
+    }
+
+    public static int[][] multiplyThreads(int[][] matrixA,int[][] matrixB, int nthreads) throws Exception {
+        checkDimensions(matrixA, matrixB);
 
         int[][] matrixC = new int[matrixA.length][matrixB[0].length];
         int threadCount = Math.min(matrixA.length, nthreads);
@@ -60,17 +61,17 @@ public abstract class Parallel {
 
         ArrayList<MyThread> threadList = new ArrayList<>();
 
-        int[] threadRows = new int[threadCount];
+        int[] rowsPerThread = new int[threadCount];
         int baseRowsCount = matrixA.length / threadCount, rem = matrixA.length % threadCount;
         int currRow = 0;
         for (int i = 0; i < threadCount; i++) {
-            threadRows[i] = baseRowsCount;
+            rowsPerThread[i] = baseRowsCount;
             if (rem > 0) {
-                threadRows[i]++;
+                rowsPerThread[i]++;
                 rem--;
             }
-            threadList.add(new MyThread(currRow, threadRows[i], matrixA,matrixB,matrixC));
-            currRow += threadRows[i];
+            threadList.add(new MyThread(currRow, rowsPerThread[i], matrixA, matrixB, matrixC));
+            currRow += rowsPerThread[i];
         }
 
         for(MyThread thread : threadList) {
@@ -82,7 +83,9 @@ public abstract class Parallel {
         return matrixC;
     }
 
-    public static int[][] multiplySequential(int[][] matrixA, int[][] matrixB) {
+    public static int[][] multiplySequential(int[][] matrixA, int[][] matrixB) throws Exception {
+        checkDimensions(matrixA, matrixB);
+
         int[][] matrixC = new int[matrixA.length][matrixB[0].length];
         for (int i = 0; i < matrixA.length; i++) {
             matrixC[i] = multiplyVectorMatrix(matrixA[i], matrixB );
@@ -90,16 +93,17 @@ public abstract class Parallel {
         return matrixC;
     }
 
-    public static int[][] multiplyStream(int[][] matrixA,int[][] matrixB, int nthreads)
-            throws InterruptedException, ExecutionException {
-        //Math.min(threadCount, Runtime.getRuntime().availableProcessors());
-        ForkJoinPool customThreadPool = new ForkJoinPool(nthreads);
+    public static int[][] multiplyStream(int[][] matrixA,int[][] matrixB, int nthreads)  throws Exception {
+        checkDimensions(matrixA, matrixB);
+
+        int threadCount = Math.min(matrixA.length, nthreads); //???
+        threadCount = Math.min(threadCount, Runtime.getRuntime().availableProcessors());
+        ForkJoinPool customThreadPool = new ForkJoinPool(threadCount);
         return customThreadPool.submit(() -> Arrays.stream(matrixA).parallel()
-                .map(row -> multiplyVectorMatrix(row, matrixB ))
+                .map(row -> multiplyVectorMatrix(row, matrixB))
                 .toArray(int[][]::new)).get();
 
-
-        /*return customThreadPool.submit(() -> Arrays.stream(matrixA).parallel()
+       /* return customThreadPool.submit(() -> Arrays.stream(matrixA).parallel()
             .map(row -> IntStream.range(0, matrixB[0].length)
             .map(i -> IntStream.range(0, matrixB.length)
             .map(j -> row[j] * matrixB[j][i])
@@ -110,18 +114,17 @@ public abstract class Parallel {
 
     static class MyThread extends Thread {
 
-        private final int row;
-        private final int nrows;
+        private final int startRow;
+        private final int rowCount;
 
         private final int[][] matrixA;
         private final int[][] matrixB;
 
-        private int[][] matrixC;
+        private final int[][] matrixC;
 
-        public MyThread(int row, int nrows, int[][] matrixA, int[][] matrixB, int[][] matrixC) {
-            this.row = row;
-            this.nrows = nrows;
-
+        public MyThread(int startRow, int rowCount, int[][] matrixA, int[][] matrixB, int[][] matrixC) {
+            this.startRow = startRow;
+            this.rowCount = rowCount;
             this.matrixA = matrixA;
             this.matrixB = matrixB;
             this.matrixC = matrixC;
@@ -129,8 +132,8 @@ public abstract class Parallel {
 
         @Override
         public void run() {
-            for (int i = row; i < row + nrows; i++) {
-                this.matrixC[i] = multiplyVectorMatrix(matrixA[i], matrixB );
+            for (int i = startRow; i < startRow + rowCount; i++) {
+                this.matrixC[i] = multiplyVectorMatrix(matrixA[i], matrixB);
             }
         }
     }

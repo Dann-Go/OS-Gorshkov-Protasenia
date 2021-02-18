@@ -7,35 +7,111 @@ import static org.junit.jupiter.api.Assertions.*;
 class ParallelTest {
 
     @Test
-    public void Test1() {
+    public void ThreadsCorrectTest() {
         int[][] matrixA = Parallel.generateMatrix(100, 200);
-        int[][] matrixB = Parallel.generateMatrix(200, 1000);
+        int[][] matrixB = Parallel.generateMatrix(200, 100);
         try {
-            assertTrue(Arrays.deepEquals(Parallel.multiplyThreads(matrixA, matrixB, 10), Parallel.multiplySequential(matrixA, matrixB)));
+            assertTrue(Arrays.deepEquals(Parallel.multiplyThreads(matrixA, matrixB, 10),
+                                         Parallel.multiplySequential(matrixA, matrixB)));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
     @Test
-    public void Test2() {
+    public void StreamCorrectTest() {
         int[][] matrixA = Parallel.generateMatrix(100, 200);
-        int[][] matrixB = Parallel.generateMatrix(200, 1000);
+        int[][] matrixB = Parallel.generateMatrix(200, 100);
         try {
-            assertTrue(Arrays.deepEquals(Parallel.multiplyStream(matrixA, matrixB, 10), Parallel.multiplySequential(matrixA, matrixB)));
+            assertTrue(Arrays.deepEquals(Parallel.multiplyStream(matrixA, matrixB, 10),
+                                         Parallel.multiplySequential(matrixA, matrixB)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    int[][] matrixA = Parallel.generateMatrix(800, 1000);
+    int[][] matrixB = Parallel.generateMatrix(1000, 800);
+
+    @Test
+    public void ThreadsTimeTest1() {
+        try {
+            Parallel.multiplyThreads(matrixA, matrixB, 1);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
     @Test
-    public void Test3() {
-        int[][] matrixA;
-        int[][] matrixB;
-        matrixA = Parallel.generateMatrix(30, 30);
-        matrixB = Parallel.generateMatrix(30, 30);
+    public void ThreadsTimeTest2() {
         try {
-            assertTrue(Arrays.deepEquals(Parallel.multiplyThreads(matrixA, matrixB, 5), Parallel.multiplySequential(matrixA, matrixB)));
+            Parallel.multiplyThreads(matrixA, matrixB, 2);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+    @Test
+    public void ThreadsTimeTest4() {
+        try {
+            Parallel.multiplyThreads(matrixA, matrixB, 4);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @Test
+    public void ThreadsTimeTest8() {
+        try {
+            Parallel.multiplyThreads(matrixA, matrixB, 8);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @Test
+    public void ThreadsTimeTest12() {
+        try {
+            Parallel.multiplyThreads(matrixA, matrixB, 12);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void StreamTimeTest1() {
+        try {
+            Parallel.multiplyStream(matrixA, matrixB, 1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @Test
+    public void StreamTimeTest2() {
+        try {
+            Parallel.multiplyStream(matrixA, matrixB, 2);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @Test
+    public void StreamTimeTest4() {
+        try {
+            Parallel.multiplyStream(matrixA, matrixB, 4);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @Test
+    public void StreamTimeTest8() {
+        try {
+            Parallel.multiplyStream(matrixA, matrixB, 8);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @Test
+    public void StreamTimeTest12() {
+        try {
+            Parallel.multiplyStream(matrixA, matrixB, 12);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
